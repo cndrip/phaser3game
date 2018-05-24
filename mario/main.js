@@ -28,6 +28,7 @@ var game = new Phaser.Game(config);
 
 function preload ()
 {
+    //加载资源文件
     this.load.image('sky', 'assets/sky.png');
     this.load.image('ground', 'assets/platform.png');
     this.load.image('star', 'assets/star.png');
@@ -36,42 +37,43 @@ function preload ()
 }
 function create ()
 {
-    //  A simple background for our game
+    // 一个简单的图片作为背景 A simple background for our game
     this.add.image(400, 300, 'sky');
 
-    //  The platforms group contains the ground and the 2 ledges we can jump on
+    // 添加一个静态组  The platforms group contains the ground and the 2 ledges we can jump on
     platforms = this.physics.add.staticGroup();
 
-    //  Here we create the ground.
-    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+    // 添加地面  Here we create the ground.
+    // 将地面放大成合适尺寸 Scale it to fit the width of the game (the original sprite is 400x32 in size)
     platforms.create(400, 568, 'ground').setScale(2).refreshBody();
 
-    //  Now let's create some ledges
+    // 在不同位置添加三条横条 Now let's create some ledges
     platforms.create(600, 400, 'ground');
     platforms.create(50, 250, 'ground');
     platforms.create(750, 220, 'ground');
 
-    // The player and its settings
+    // 创建玩家(角色) The player and its settings
     player = this.physics.add.sprite(100, 450, 'dude');
 
-    //  Player physics properties. Give the little guy a slight bounce.
+    // 设置玩家反弹系数 Player physics properties. Give the little guy a slight bounce.
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
 
-    //  Our player animations, turning, walking left and walking right.
+    // 将玩家的转身，走路以及停止设置动画 Our player animations, turning, walking left and walking right.
+    // 向左走
     this.anims.create({
         key: 'left',
         frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
         frameRate: 10,
         repeat: -1
     });
-
+    //转身
     this.anims.create({
         key: 'turn',
         frames: [ { key: 'dude', frame: 4 } ],
         frameRate: 20
     });
-
+    //向右走
     this.anims.create({
         key: 'right',
         frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
@@ -79,10 +81,10 @@ function create ()
         repeat: -1
     });
 
-    //  Input Events
+    // 由键盘控制方向 Input Events
     cursors = this.input.keyboard.createCursorKeys();
 
-    //  Some stars to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
+    // 产生12个星星每个之间空70像素 Some stars to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
     stars = this.physics.add.group({
         key: 'star',
         repeat: 11,
@@ -91,24 +93,24 @@ function create ()
 
     stars.children.iterate(function (child) {
 
-        //  Give each star a slightly different bounce
+        // 对于每个星星产生不同的反弹系数 Give each star a slightly different bounce
         child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
 
     });
 
     bombs = this.physics.add.group();
 
-    //  The score
+    // 添加分数 The score
     scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
-    //  Collide the player and the stars with the platforms
+    // 两两(玩家与星星，玩家与炸弹)之间的碰撞 Collide the player and the stars with the platforms
     this.physics.add.collider(player, platforms);
     this.physics.add.collider(stars, platforms);
     this.physics.add.collider(bombs, platforms);
 
-    //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
+    // 收集星星 Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
     this.physics.add.overlap(player, stars, collectStar, null, this);
-
+    // 碰到炸弹
     this.physics.add.collider(player, bombs, hitBomb, null, this);
 }
 
@@ -147,13 +149,13 @@ function collectStar (player, star)
 {
     star.disableBody(true, true);
 
-    //  Add and update the score
+    // 更新分数 Add and update the score
     score += 10;
     scoreText.setText('Score: ' + score);
 
     if (stars.countActive(true) === 0)
     {
-        //  A new batch of stars to collect
+        // 收集一批星星 A new batch of stars to collect
         stars.children.iterate(function (child) {
 
             child.enableBody(true, child.x, 0, true, true);
@@ -161,7 +163,7 @@ function collectStar (player, star)
         });
 
         var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
-
+        //产生炸弹
         var bomb = bombs.create(x, 16, 'bomb');
         bomb.setBounce(1);
         bomb.setCollideWorldBounds(true);
