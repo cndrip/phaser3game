@@ -2,5 +2,5 @@
 一些Phaser3的游戏
 
 ## 游戏清单
-mario 马里奥 (官方)
-breakout 敲砖头游戏 
+mario 马里奥 (官方)  
+breakout 敲砖头游戏  
