@@ -6,4 +6,4 @@
 mario 马里奥 (官方)  
 breakout 敲砖头游戏  
 flybird 简版飞扬的小鸟  
-knifehit 飞刀游戏    
+knifehit 飞刀游戏 v1.0 v1.1   

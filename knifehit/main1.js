@@ -1,36 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>飞刀游戏</title>
-	<script src="../js/phaser3.3.js"></script>
-	<style type="text/css">       
-        body{
-            background: #000000;
-            padding: 0px;
-            margin: 0px;
-        }
-        canvas{
-        	display: block;
-        	margin: 0;
-        	position: absolute;
-        	top: 50%;
-        	left: 50%;
-        	transform: translate(-50%,-50%);
-        }
-    </style>
-</head>
-<body>
-<script>
 var game;
 var gameOptions={
 
 	// 设置旋转速度，即每一帧转动的角度
 	rotationSpeed: 3, 
 	// 刀飞出去的速度, 即一秒中内移动像素
-	throwSpeed: 150,
-	//v1.1新增 两把刀之前的最小角度(约束角度)
-	minAngle: 15
+	throwSpeed: 150	
 }
 
 // 窗口第一次加载...
@@ -105,67 +79,14 @@ class playGame extends Phaser.Scene{
 
 				 // 执行后的回调函数
 				onComplete: function(tween){
+					// 玩家现可以再次扔刀
+					this.canThrow= true;
 
-					//v1.1 新增 合法飞出参数
-					var legalHit = true;
-					//v1.1 新增 已经在圆木上刀成员
-					var children = this.knifeGroup.getChildren();
-					//v1.1 对于在圆木上的每一把刀设置约束角度
-                    for (var i=0; i<children.length; i++){
- 
-                        //v1.1 判断当前飞刀与圆木上的刀是否在约束范围之内
-                        if(Math.abs(Phaser.Math.Angle.ShortestBetween(this.target.angle, children[i].impactAngle)) < gameOptions.minAngle){
- 
-                            //v1.1 确定标记参数
-                            legalHit = false;
- 
-                            //v1.1 一旦在约束范围内就停止
-                            break;
-                        }
-                    }
-                    // 原来合法飞出
-                    if(legalHit){
+					// 将飞出的刀插在圆木上
+					var knife = this.add.sprite(this.knife.x, this.knife.y, "knife");
+					this.knifeGroup.add(knife);
 
-						// 玩家现可以再次扔刀
-						this.canThrow= true;
-
-						// 将飞出的刀插在圆木上
-						var knife = this.add.sprite(this.knife.x, this.knife.y, "knife");
-						//v1.1 飞刀的约束角度等于目标的角度
-                        knife.impactAngle = this.target.angle;
-                        // 将飞刀绑定在飞刀组中
-						this.knifeGroup.add(knife);
-
-						// 确定相对位置
-						this.knife.y = game.config.height/5*4;
-					}
-					else
-					{
-						//v1.1 增加飞刀掉落动画
-                        this.tweens.add({
- 
-                            //v1.1 目标
-                            targets: [this.knife],
- 
-                            y: game.config.height + this.knife.height,
- 
-                            //v1.1 旋转角度
-                            rotation: 5,
-
-                            //v1.1 补间速度 
-                            duration: gameOptions.throwSpeed * 4,
- 
-                            //v1.1 回传范围
-                            callbackScope: this,
- 
-                            //v1.1 结束后的回调函数
-                            onComplete: function(tween){
- 
-                                //v1.1 重新开始游戏
-                                this.scene.start("playGame")
-                            }
-                        });
-					}
+					this.knife.y = game.config.height/5*4;
 				}
 
 			});
@@ -188,8 +109,6 @@ class playGame extends Phaser.Scene{
 			// 刀旋转的速度设置与圆木的速度一致
 			children[i].angle += gameOptions.rotationSpeed;
 
-			//console.log(i);
-
 			 // 将角度转化为弧度
 			var radians = Phaser.Math.DegToRad(children[i].angle + 90);
 
@@ -197,7 +116,6 @@ class playGame extends Phaser.Scene{
 			children[i].x = this.target.x + (this.target.width/2)*Math.cos(radians);
             children[i].y = this.target.y + (this.target.width/2)*Math.sin(radians);
 		}
-
 
 	}
 }
@@ -219,9 +137,3 @@ function resize() {
         canvas.style.height = windowHeight + "px";
     }
 } 
-
-
-
-</script>	
-</body>
-</html>

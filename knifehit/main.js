@@ -1,27 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>飞刀游戏</title>
-	<script src="../js/phaser3.3.js"></script>
-	<style type="text/css">       
-        body{
-            background: #000000;
-            padding: 0px;
-            margin: 0px;
-        }
-        canvas{
-        	display: block;
-        	margin: 0;
-        	position: absolute;
-        	top: 50%;
-        	left: 50%;
-        	transform: translate(-50%,-50%);
-        }
-    </style>
-</head>
-<body>
-<script>
+//ver1.1
 var game;
 var gameOptions={
 
@@ -219,9 +196,3 @@ function resize() {
         canvas.style.height = windowHeight + "px";
     }
 } 
-
-
-
-</script>	
-</body>
-</html>
