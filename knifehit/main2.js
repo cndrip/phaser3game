@@ -1,4 +1,4 @@
-//ver 1.2
+//ver1.1
 var game;
 var gameOptions={
 
@@ -7,14 +7,7 @@ var gameOptions={
 	// 刀飞出去的速度, 即一秒中内移动像素
 	throwSpeed: 150,
 	//v1.1新增 两把刀之前的最小角度(约束角度)
-	minAngle: 15,
-
-    //v1.2新增 最大转动的变化量，即每一帧上限
-    rotationVariation: 2,
-    //v1.2新增 下一秒的变化速度
-    changeTime: 2000,
-    //v1.2新增 最大旋转速度
-    maxRotationSpeed: 6
+	minAngle: 15
 }
 
 // 窗口第一次加载...
@@ -47,9 +40,6 @@ class playGame extends Phaser.Scene{
 	}
 	// 游戏开始运行
 	create(){
-		 //v1.2 在游戏一开始设置转动的速度与一致，即默认值
-        this.currentRotationSpeed = gameOptions.rotationSpeed;
-        this.newRotationSpeed = gameOptions.rotationSpeed;
 
 		// 在游戏开始时设置可以扔刀
 		this.canThrow = true;
@@ -67,31 +57,7 @@ class playGame extends Phaser.Scene{
 
 		// 点击后飞出刀
 		this.input.on("pointerdown", this.throwKnife, this);
-
-        //v1.2 创建循环的时间事件
-        var timedEvent = this.time.addEvent({
-            delay: gameOptions.changeTime,
-            callback: this.changeSpeed,
-            callbackScope: this,
-            loop: true
-        });
 	}
-
-	//v1.2 圆木的旋转速度
-    changeSpeed(){
-
-        //v1.2 产生一个随机旋转方向，即+1或-1
-        var sign = Phaser.Math.Between(0, 1) == 0 ? -1 : 1;
-
-        //v1.2 产生一个随机数据范围在[-游戏设置变量，游戏设置变量]
-        var variation = Phaser.Math.FloatBetween(-gameOptions.rotationVariation, gameOptions.rotationVariation);
-
-        //v1.2 产生一个新的旋转的速度
-        this.newRotationSpeed = (this.currentRotationSpeed + variation) * sign;
-
-        //v1.2 设置一个新的限制速度
-        this.newRotationSpeed = Phaser.Math.Clamp(this.newRotationSpeed, -gameOptions.maxRotationSpeed, gameOptions.maxRotationSpeed);
-    }
 
 	// 飞出刀动作
 	throwKnife(){
@@ -184,14 +150,11 @@ class playGame extends Phaser.Scene{
 
 	}
 
-	// 游戏每一帧执行 v1.2 增加两个参数
-	//update(){
-	update(time, delta){
+	// 游戏每一帧执行
+	update(){
 
-
-		//v1.2 修改 使目标转动起来
-		//this.target.angle += gameOptions.rotationSpeed;
-		this.target.angle += this.currentRotationSpeed;
+		//使目标转动起来
+		this.target.angle += gameOptions.rotationSpeed;
 
 		// 获取旋转的刀成员
 		var children = this.knifeGroup.getChildren();
@@ -199,9 +162,10 @@ class playGame extends Phaser.Scene{
 		// 对于刀的每个成员
 		for (var i=0; i<children.length; i++){
 
-			//v1.2 修改 刀旋转的速度设置与当前速度一致
-			//children[i].angle += gameOptions.rotationSpeed;
-			children[i].angle += this.currentRotationSpeed;
+			// 刀旋转的速度设置与圆木的速度一致
+			children[i].angle += gameOptions.rotationSpeed;
+
+			//console.log(i);
 
 			 // 将角度转化为弧度
 			var radians = Phaser.Math.DegToRad(children[i].angle + 90);
@@ -210,8 +174,7 @@ class playGame extends Phaser.Scene{
 			children[i].x = this.target.x + (this.target.width/2)*Math.cos(radians);
             children[i].y = this.target.y + (this.target.width/2)*Math.sin(radians);
 		}
-		//v1.2 调整旋转角度用线性插值表示
-        this.currentRotationSpeed = Phaser.Math.Linear(this.currentRotationSpeed, this.newRotationSpeed, delta / 1000);
+
 
 	}
 }
