@@ -4,7 +4,9 @@ var gameOptions = {
     tweenSpeed: 50,
     tileSpacing: 20
 }
+// 窗口第一次加载...
 window.onload = function() {
+     // 游戏的参数设置
     var gameConfig = {
        type: Phaser.CANVAS,
        width: gameOptions.tileSize * 4 + gameOptions.tileSpacing * 5,
@@ -13,8 +15,8 @@ window.onload = function() {
        scene: [playGame]
    };
     game = new Phaser.Game(gameConfig);
-    window.focus()
-    resize();
+    window.focus();//获得窗口焦点
+    resize();//调整窗口
     window.addEventListener("resize", resize, false);
 }
 var playGame = new Phaser.Class({
@@ -23,6 +25,7 @@ var playGame = new Phaser.Class({
     function playGame(){
         Phaser.Scene.call(this, {key: "PlayGame"});
     },
+    // 预加载
     preload: function(){
         this.load.image("tile", "tile.png");
         this.load.spritesheet("tiles", "assets/sprites/tiles.png", {
@@ -30,6 +33,7 @@ var playGame = new Phaser.Class({
             frameHeight: gameOptions.tileSize
         });
     },
+    // 游戏开始运行
     create: function(){
         this.fieldArray = [];
         this.fieldGroup = this.add.group();
@@ -47,12 +51,15 @@ var playGame = new Phaser.Class({
                 }
             }
         }
+        //键盘按下执行的操作
         this.input.keyboard.on("keydown", this.handleKey, this);
         this.canMove = false;
         this.addTwo();
         this.addTwo();
+        //键盘放开执行的操作
         this.input.on("pointerup", this.endSwipe, this);
     },
+    //
     endSwipe: function(e){
         var swipeTime = e.upTime - e.downTime;
         var swipe = new Phaser.Geom.Point(e.upX - e.downX, e.upY - e.downY);
@@ -86,6 +93,7 @@ var playGame = new Phaser.Class({
             }
         }
     },
+    //随机产生一个数字2
     addTwo: function(){
         var emptyTiles = [];
         for(var i = 0; i < 4; i++){
@@ -111,6 +119,7 @@ var playGame = new Phaser.Class({
             },
         });
 	},
+    //确定是哪些键被按下，执行相关的操作-移动handleMove()
     handleKey: function(e){
         if(this.canMove){
             var children = this.fieldGroup.getChildren();
@@ -146,6 +155,7 @@ var playGame = new Phaser.Class({
             }
         }
     },
+    //数字移动及合并函数
     handleMove: function(deltaRow, deltaCol){
         this.canMove = false;
         var somethingMoved = false;
@@ -186,6 +196,7 @@ var playGame = new Phaser.Class({
             this.canMove = true;
         }
     },
+    // 数字移动的效果(动画)
     moveTile: function(tile, row, col, distance, changeNumber){
         this.movingTiles ++;
         this.tweens.add({
@@ -205,6 +216,7 @@ var playGame = new Phaser.Class({
             }
         })
     },
+    // 变化的效果(动画)
     transformTile: function(tile, row, col){
         this.movingTiles ++;
         tile.tileSprite.setFrame(this.fieldArray[row][col].tileValue - 1);
@@ -224,6 +236,7 @@ var playGame = new Phaser.Class({
             }
         })
     },
+    //重新加载图像
     resetTiles: function(){
         for(var i = 0; i < 4; i++){
             for(var j = 0; j < 4; j++){
@@ -242,13 +255,16 @@ var playGame = new Phaser.Class({
             }
         }
     },
+    //判断是否在框内
     isInsideBoard: function(row, col){
         return (row >= 0) && (col >= 0) && (row < 4) && (col < 4);
     },
+    //返回目标图像(位置)
     tileDestination: function(pos){
         return pos * (gameOptions.tileSize + gameOptions.tileSpacing) + gameOptions.tileSize / 2 + gameOptions.tileSpacing
     }
 });
+// 按比例调整窗口
 function resize() {
     var canvas = document.querySelector("canvas");
     var windowWidth = window.innerWidth;
