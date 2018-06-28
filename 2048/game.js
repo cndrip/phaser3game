@@ -91,7 +91,7 @@ var playGame = new Phaser.Class({
         logo.setOrigin(0.5, 1);
         logo.setInteractive();
         logo.on("pointerdown", function(){
-            window.location.href = "http://www.emanueleferonato.com/"
+            window.location.href = "http://www.nbdp.net/"
         });
         this.scoreText = this.add.bitmapText(this.tileDestination(0, COL) - 80, this.tileDestination(0, ROW) - 225, "font", "0");
         this.bestScoreText = this.add.bitmapText(this.tileDestination(2, COL) - 190, this.tileDestination(0, ROW) - 225, "font", this.bestScore.toString());
