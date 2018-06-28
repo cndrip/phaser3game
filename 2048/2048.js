@@ -2,109 +2,64 @@ var game;
 var gameOptions = {
     tileSize: 200,
     tweenSpeed: 50,
-    tileSpacing: 20,
-    localStorageName: "top4096score" //4096 增加储存分数变量
+    tileSpacing: 20
 }
-var ROW = 0;
-var COL = 1;//4096 分别用于定位行和列的常量
-// 窗口第一次加载
+// 窗口第一次加载...
 window.onload = function() {
+     // 游戏的参数设置
     var gameConfig = {
        type: Phaser.CANVAS,
        width: gameOptions.tileSize * 4 + gameOptions.tileSpacing * 5,
-       height: (gameOptions.tileSize * 4 + gameOptions.tileSpacing * 5) * 16 / 9,
+       height: gameOptions.tileSize * 4 + gameOptions.tileSpacing * 5,
        backgroundColor: 0xecf0f1,
-       scene: [preloadAssets, playGame]
+       scene: [playGame]
    };
     game = new Phaser.Game(gameConfig);
     window.focus();//获得窗口焦点
     resize();//调整窗口
     window.addEventListener("resize", resize, false);
 }
-
-var preloadAssets = new Phaser.Class({
-    Extends: Phaser.Scene,
-    initialize:
-    function preloadAssets(){
-        Phaser.Scene.call(this, {key: "PreloadAssets"});
-    },
-     // 预加载 各种资源
-    preload: function(){
-        this.load.image("spot", "assets/sprites/spot.png");
-        this.load.image("gametitle", "assets/sprites/gametitle.png");
-        this.load.image("restart", "assets/sprites/restart.png");
-        this.load.image("scorepanel", "assets/sprites/scorepanel.png");
-        this.load.image("scorelabels", "assets/sprites/scorelabels.png");
-        this.load.image("logo", "assets/sprites/logo.png");
-        this.load.image("howtoplay", "assets/sprites/howtoplay.png");
-        this.load.spritesheet("tiles", "assets/sprites/tiles.png", {
-            frameWidth: gameOptions.tileSize,
-            frameHeight: gameOptions.tileSize
-        });
-        this.load.bitmapFont("font", "assets/fonts/font.png", "assets/fonts/font.fnt");
-        this.load.audio("move", ["assets/sounds/move.ogg", "assets/sounds/move.mp3"]);
-        this.load.audio("grow", ["assets/sounds/grow.ogg", "assets/sounds/grow.mp3"]);
-    },
-    create: function(){
-        this.scene.start("PlayGame");
-    }
-})
-
 var playGame = new Phaser.Class({
     Extends: Phaser.Scene,
     initialize:
     function playGame(){
         Phaser.Scene.call(this, {key: "PlayGame"});
     },
-     // 游戏开始运行
+    // 预加载
+    preload: function(){
+        this.load.image("tile", "tile.png");
+        this.load.spritesheet("tiles", "assets/sprites/tiles.png", {
+            frameWidth: gameOptions.tileSize,
+            frameHeight: gameOptions.tileSize
+        });
+    },
+    // 游戏开始运行
     create: function(){
         this.fieldArray = [];
         this.fieldGroup = this.add.group();
-        this.score = 0;//4096 增加得分
-        this.bestScore = localStorage.getItem(gameOptions.localStorageName) == null ? 0 : localStorage.getItem(gameOptions.localStorageName);
         for(var i = 0; i < 4; i++){
             this.fieldArray[i] = [];
             for(var j = 0; j < 4; j++){
-                var spot = this.add.sprite(this.tileDestination(j, COL), this.tileDestination(i, ROW), "spot")
-                var tile = this.add.sprite(this.tileDestination(j, COL), this.tileDestination(i, ROW), "tiles");
-                tile.alpha = 0;
-                tile.visible = 0;
-                this.fieldGroup.add(tile);
+                var two = this.add.sprite(this.tileDestination(j), this.tileDestination(i), "tiles");
+                two.alpha = 0;
+                two.visible = 0;
+                this.fieldGroup.add(two);
                 this.fieldArray[i][j] = {
                     tileValue: 0,
-                    tileSprite: tile,
+                    tileSprite: two,
                     canUpgrade: true
                 }
             }
         }
-        var restartButton = this.add.sprite(this.tileDestination(3, COL), this.tileDestination(0, ROW) - 200, "restart");
-        restartButton.setInteractive();
-        restartButton.on("pointerdown", function(){
-            this.scene.start("PlayGame");
-        }, this)
-        this.add.sprite(this.tileDestination(1, COL), this.tileDestination(0, ROW) - 200, "scorepanel");
-        this.add.sprite(this.tileDestination(1, COL), this.tileDestination(0, ROW) - 270, "scorelabels");
-        this.add.sprite(10, 5, "gametitle").setOrigin(0, 0);
-        var howTo = this.add.sprite(game.config.width, 5, "howtoplay");
-        howTo.setOrigin(1, 0);
-        var logo = this.add.sprite(game.config.width / 2, game.config.height, "logo");
-        logo.setOrigin(0.5, 1);
-        logo.setInteractive();
-        logo.on("pointerdown", function(){
-            window.location.href = "http://www.emanueleferonato.com/"
-        });
-        this.scoreText = this.add.bitmapText(this.tileDestination(0, COL) - 80, this.tileDestination(0, ROW) - 225, "font", "0");
-        this.bestScoreText = this.add.bitmapText(this.tileDestination(2, COL) - 190, this.tileDestination(0, ROW) - 225, "font", this.bestScore.toString());
         //键盘按下执行的操作
         this.input.keyboard.on("keydown", this.handleKey, this);
         this.canMove = false;
-        this.addTile();
-        this.addTile();
+        this.addTwo();
+        this.addTwo();
         //键盘放开执行的操作
         this.input.on("pointerup", this.endSwipe, this);
-        this.moveSound = this.sound.add("move");
-        this.growSound = this.sound.add("grow");
     },
+    //
     endSwipe: function(e){
         var swipeTime = e.upTime - e.downTime;
         var swipe = new Phaser.Geom.Point(e.upX - e.downX, e.upY - e.downY);
@@ -139,7 +94,7 @@ var playGame = new Phaser.Class({
         }
     },
     //随机产生一个数字2
-    addTile: function(){
+    addTwo: function(){
         var emptyTiles = [];
         for(var i = 0; i < 4; i++){
             for(var j = 0; j < 4; j++){
@@ -151,20 +106,18 @@ var playGame = new Phaser.Class({
                 }
             }
         }
-        if(emptyTiles.length > 0){
-            var chosenTile = Phaser.Utils.Array.GetRandomElement(emptyTiles);
-            this.fieldArray[chosenTile.row][chosenTile.col].tileValue = 1;
-            this.fieldArray[chosenTile.row][chosenTile.col].tileSprite.visible = true;
-            this.fieldArray[chosenTile.row][chosenTile.col].tileSprite.setFrame(0);
-            this.tweens.add({
-                targets: [this.fieldArray[chosenTile.row][chosenTile.col].tileSprite],
-                alpha: 1,
-                duration: gameOptions.tweenSpeed,
-                onComplete: function(tween){
-                    tween.parent.scene.canMove = true;
-                },
-            });
-        }
+        var chosenTile = Phaser.Utils.Array.GetRandomElement(emptyTiles);
+        this.fieldArray[chosenTile.row][chosenTile.col].tileValue = 1;
+        this.fieldArray[chosenTile.row][chosenTile.col].tileSprite.visible = true;
+        this.fieldArray[chosenTile.row][chosenTile.col].tileSprite.setFrame(0);
+        this.tweens.add({
+            targets: [this.fieldArray[chosenTile.row][chosenTile.col].tileSprite],
+            alpha: 1,
+            duration: gameOptions.tweenSpeed,
+            onComplete: function(tween){
+                tween.parent.scene.canMove = true;
+            },
+        });
 	},
     //确定是哪些键被按下，执行相关的操作-移动handleMove()
     handleKey: function(e){
@@ -207,7 +160,6 @@ var playGame = new Phaser.Class({
         this.canMove = false;
         var somethingMoved = false;
         this.movingTiles = 0;
-        var moveScore = 0;
         for(var i = 0; i < 4; i++){
             for(var j = 0; j < 4; j++){
                 var colToWatch = deltaCol == 1 ? (4 - 1) - j : j;
@@ -220,9 +172,8 @@ var playGame = new Phaser.Class({
                         colSteps += deltaCol;
                         rowSteps += deltaRow;
                     }
-                    if(this.isInsideBoard(rowToWatch + rowSteps, colToWatch + colSteps) && (this.fieldArray[rowToWatch + rowSteps][colToWatch + colSteps].tileValue == tileValue) && this.fieldArray[rowToWatch + rowSteps][colToWatch + colSteps].canUpgrade && this.fieldArray[rowToWatch][colToWatch].canUpgrade && tileValue < 12){
+                    if(this.isInsideBoard(rowToWatch + rowSteps, colToWatch + colSteps) && (this.fieldArray[rowToWatch + rowSteps][colToWatch + colSteps].tileValue == tileValue) && this.fieldArray[rowToWatch + rowSteps][colToWatch + colSteps].canUpgrade && this.fieldArray[rowToWatch][colToWatch].canUpgrade){
                         this.fieldArray[rowToWatch + rowSteps][colToWatch + colSteps].tileValue ++;
-                        moveScore += Math.pow(2, this.fieldArray[rowToWatch + rowSteps][colToWatch + colSteps].tileValue);
                         this.fieldArray[rowToWatch + rowSteps][colToWatch + colSteps].canUpgrade = false;
                         this.fieldArray[rowToWatch][colToWatch].tileValue = 0;
                         this.moveTile(this.fieldArray[rowToWatch][colToWatch], rowToWatch + rowSteps, colToWatch + colSteps, Math.abs(rowSteps + colSteps), true);
@@ -244,22 +195,14 @@ var playGame = new Phaser.Class({
         if(!somethingMoved){
             this.canMove = true;
         }
-        else{
-            this.moveSound.play();
-            this.score += moveScore;
-            if(this.score > this.bestScore){
-                this.bestScore = this.score;
-                localStorage.setItem(gameOptions.localStorageName, this.bestScore);
-            }
-        }
     },
     // 数字移动的效果(动画)
     moveTile: function(tile, row, col, distance, changeNumber){
         this.movingTiles ++;
         this.tweens.add({
             targets: [tile.tileSprite],
-            x: this.tileDestination(col, COL),
-            y: this.tileDestination(row, ROW),
+            x: this.tileDestination(col),
+            y: this.tileDestination(row),
             duration: gameOptions.tweenSpeed * distance,
             onComplete: function(tween){
                 tween.parent.scene.movingTiles --;
@@ -267,17 +210,14 @@ var playGame = new Phaser.Class({
                     tween.parent.scene.transformTile(tile, row, col);
                 }
                 if(tween.parent.scene.movingTiles == 0){
-                    tween.parent.scene.scoreText.text = tween.parent.scene.score.toString();
-                    tween.parent.scene.bestScoreText.text = tween.parent.scene.bestScore.toString();
                     tween.parent.scene.resetTiles();
-                    tween.parent.scene.addTile();
+                    tween.parent.scene.addTwo();
                 }
             }
         })
     },
     // 变化的效果(动画)
     transformTile: function(tile, row, col){
-        this.growSound.play();
         this.movingTiles ++;
         tile.tileSprite.setFrame(this.fieldArray[row][col].tileValue - 1);
         this.tweens.add({
@@ -290,10 +230,8 @@ var playGame = new Phaser.Class({
             onComplete: function(tween){
                 tween.parent.scene.movingTiles --;
                 if(tween.parent.scene.movingTiles == 0){
-                    tween.parent.scene.scoreText.text = tween.parent.scene.score.toString();
-                    tween.parent.scene.bestScoreText.text = tween.parent.scene.bestScore.toString();
                     tween.parent.scene.resetTiles();
-                    tween.parent.scene.addTile();
+                    tween.parent.scene.addTwo();
                 }
             }
         })
@@ -303,8 +241,8 @@ var playGame = new Phaser.Class({
         for(var i = 0; i < 4; i++){
             for(var j = 0; j < 4; j++){
                 this.fieldArray[i][j].canUpgrade = true;
-                this.fieldArray[i][j].tileSprite.x = this.tileDestination(j, COL);
-                this.fieldArray[i][j].tileSprite.y = this.tileDestination(i, ROW);
+                this.fieldArray[i][j].tileSprite.x = this.tileDestination(j);
+                this.fieldArray[i][j].tileSprite.y = this.tileDestination(i);
                 if(this.fieldArray[i][j].tileValue > 0){
                     this.fieldArray[i][j].tileSprite.alpha = 1;
                     this.fieldArray[i][j].tileSprite.visible = true;
@@ -321,9 +259,9 @@ var playGame = new Phaser.Class({
     isInsideBoard: function(row, col){
         return (row >= 0) && (col >= 0) && (row < 4) && (col < 4);
     },
-    tileDestination: function(pos, axis){
-        var offset = (axis == ROW) ? (game.config.height - game.config.width) / 2 : 0;
-        return pos * (gameOptions.tileSize + gameOptions.tileSpacing) + gameOptions.tileSize / 2 + gameOptions.tileSpacing + offset;
+    //返回目标图像(位置)
+    tileDestination: function(pos){
+        return pos * (gameOptions.tileSize + gameOptions.tileSpacing) + gameOptions.tileSize / 2 + gameOptions.tileSpacing
     }
 });
 // 按比例调整窗口
